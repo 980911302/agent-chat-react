@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { message } from 'antd';
+import { notify, type NotifyType } from '../utils';
 import type { Theme, ExtraAgentData, HorizontalAlignment, DocumentInfo, AgentGroup } from '../types';
 import type { RootState, AppDispatch } from '../store';
 import {
@@ -44,6 +44,8 @@ export interface TimelineChatLayoutProps {
   groups?: AgentGroup[];
   /** 是否自动连接 WebSocket，设为 false 时需要手动调用 ref.connect() 连接 */
   autoConnect?: boolean;
+  /** 提示消息回调（连接错误/终止对话结果等），不传则输出到 console */
+  onNotify?: (type: NotifyType, message: string) => void;
 }
 
 export interface TimelineChatLayoutRef {
@@ -72,6 +74,7 @@ export const TimelineChatLayout = forwardRef<TimelineChatLayoutRef, TimelineChat
       inputAgentsData = [],
       groups = [],
       autoConnect = true,
+      onNotify,
     },
     ref
   ) => {
@@ -110,9 +113,9 @@ export const TimelineChatLayout = forwardRef<TimelineChatLayoutRef, TimelineChat
     // 连接错误提示 —— 与 Vue 版 watch(connectionError) 对齐
     useEffect(() => {
       if (connectionError) {
-        message.error(connectionError);
+        notify(onNotify, 'error', connectionError);
       }
-    }, [connectionError]);
+    }, [connectionError, onNotify]);
 
     // 登出时断开连接 —— 与 Vue 版 watch(isLoggedIn) 对齐
     useEffect(() => {
@@ -130,7 +133,7 @@ export const TimelineChatLayout = forwardRef<TimelineChatLayoutRef, TimelineChat
         knowledgeIds?: string[]
       ) => {
         if (!isConnected) {
-          message.warning('未连接到服务器');
+          notify(onNotify, 'warning', '未连接到服务器');
           return;
         }
 
@@ -153,7 +156,7 @@ export const TimelineChatLayout = forwardRef<TimelineChatLayoutRef, TimelineChat
         transport.sendMessage(content, documents, targetAgent, knowledgeIds);
         setTimeout(() => messageListRef.current?.scrollToBottom?.(), 100);
       },
-      [transport, isConnected, user, groups]
+      [transport, isConnected, user, groups, onNotify]
     );
 
     // 终止对话 —— 与 Vue 版对齐：连接中且加载中才允许终止，并给出结果提示
@@ -161,11 +164,11 @@ export const TimelineChatLayout = forwardRef<TimelineChatLayoutRef, TimelineChat
       if (!isConnected || !isLoading) return;
       try {
         await transport.terminateSession();
-        message.info('已终止当前对话');
+        notify(onNotify, 'info', '已终止当前对话');
       } catch (err) {
-        message.error(err instanceof Error ? err.message : '终止失败');
+        notify(onNotify, 'error', err instanceof Error ? err.message : '终止失败');
       }
-    }, [isConnected, isLoading, transport]);
+    }, [isConnected, isLoading, transport, onNotify]);
 
     // 加载更多 —— 群聊模式（多智能体）下走全局翻页，单智能体模式按当前智能体翻页（与 Vue 版对齐）
     const handleLoadMore = useCallback(() => {
@@ -222,6 +225,7 @@ export const TimelineChatLayout = forwardRef<TimelineChatLayoutRef, TimelineChat
           boundAgentType={user?.agentType || 'agent'}
           onSend={handleSend}
           onTerminate={handleTerminate}
+          onNotify={onNotify}
         />
       </div>
     );

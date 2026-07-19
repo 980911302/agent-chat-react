@@ -36,6 +36,8 @@ export declare interface A2UIChatLayoutProps {
     onComponentsUpdated?: (data: any) => void;
     onDataModelUpdated?: (data: any) => void;
     onSurfaceDeleted?: (surfaceId: string) => void;
+    /** 提示消息回调（连接错误/终止对话结果等），不传则输出到 console */
+    onNotify?: (type: NotifyType, message: string) => void;
 }
 
 export declare interface A2UIChatLayoutRef {
@@ -421,6 +423,8 @@ export declare interface InputAreaProps {
     }, knowledgeIds?: string[]) => void;
     /** 终止事件 */
     onTerminate?: () => void;
+    /** 提示消息回调（上传失败/发送校验等），不传则输出到 console */
+    onNotify?: (type: NotifyType, message: string) => void;
 }
 
 /**
@@ -521,6 +525,9 @@ export declare interface MessagesResponse {
     };
 }
 
+/** 提示消息类型 */
+declare type NotifyType = 'error' | 'warning' | 'info';
+
 export declare const prependMessages: ActionCreatorWithPayload<    {
 agent: string;
 messages: HistoryMessage[];
@@ -550,6 +557,8 @@ export declare interface RapTimelineChatLayoutProps {
     groups?: AgentGroup[];
     /** 是否自动连接 WebSocket，设为 false 时需要手动调用 ref.connect() 连接 */
     autoConnect?: boolean;
+    /** 提示消息回调（连接错误/终止对话结果等），不传则输出到 console */
+    onNotify?: (type: NotifyType, message: string) => void;
 }
 
 export declare interface RapTimelineChatLayoutRef {
@@ -631,6 +640,8 @@ export declare interface SampleChatLayoutProps {
     groups?: AgentGroup[];
     /** 是否自动连接 WebSocket，设为 false 时需要手动调用 ref.connect() 连接 */
     autoConnect?: boolean;
+    /** 提示消息回调（连接错误/终止对话结果等），不传则输出到 console */
+    onNotify?: (type: NotifyType, message: string) => void;
 }
 
 export declare interface SampleChatLayoutRef {
@@ -933,6 +944,8 @@ export declare interface TimelineChatLayoutProps {
     groups?: AgentGroup[];
     /** 是否自动连接 WebSocket，设为 false 时需要手动调用 ref.connect() 连接 */
     autoConnect?: boolean;
+    /** 提示消息回调（连接错误/终止对话结果等），不传则输出到 console */
+    onNotify?: (type: NotifyType, message: string) => void;
 }
 
 export declare interface TimelineChatLayoutRef {

@@ -10,11 +10,11 @@ import {
   BookOpen,
   MoreHorizontal,
 } from 'lucide-react';
-import { Upload, message } from 'antd';
 import type { ExtraAgentData, KnowledgeGroup, DocumentInfo, HorizontalAlignment, Theme } from '../../types';
 import { TokensBar } from '../common/TokensBar';
 import { getToken } from '../../config';
 import { agentsApi, agentGroupsApi, knowledgeApi, uploadApi } from '../../vendor/api-gateway/index';
+import { notify, type NotifyType } from '../../utils';
 
 /**
  * 消息输入区域组件
@@ -66,6 +66,8 @@ export interface InputAreaProps {
   ) => void;
   /** 终止事件 */
   onTerminate?: () => void;
+  /** 提示消息回调（上传失败/发送校验等），不传则输出到 console */
+  onNotify?: (type: NotifyType, message: string) => void;
 }
 
 /** 智能体选项（内部使用） */
@@ -105,6 +107,7 @@ export const InputArea: React.FC<InputAreaProps> = ({
   boundAgentType = 'agent',
   onSend,
   onTerminate,
+  onNotify,
 }) => {
   // ==================== 状态管理 ====================
   const [inputMessage, setInputMessage] = useState('');
@@ -143,6 +146,7 @@ export const InputArea: React.FC<InputAreaProps> = ({
   const toolbarAgentRef = useRef<HTMLDivElement>(null);
   const toolbarKnowledgeRef = useRef<HTMLDivElement>(null);
   const toolbarMoreRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const knowledgePanelRef = useRef<HTMLDivElement>(null);
 
   // ==================== 计算属性 ====================
@@ -628,20 +632,30 @@ export const InputArea: React.FC<InputAreaProps> = ({
     return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
   };
 
-  /** 处理文件选择（antd Upload beforeUpload） */
+  /** 处理文件选择 */
   const handleFileUpload = useCallback((file: File) => {
     if (file.size > MAX_FILE_SIZE) {
-      message.error(`文件 ${file.name} 大小超过 10MB 限制`);
-      return false;
+      notify(onNotify, 'error', `文件 ${file.name} 大小超过 10MB 限制`);
+      return;
     }
 
     setUploadedFiles((prev) => [
       ...prev,
       { name: file.name, size: file.size, file },
     ]);
+  }, [onNotify]);
 
-    return false; // 阻止 antd 自动上传
-  }, []);
+  /** 隐藏的原生文件选择框变化时触发 */
+  const handleFileInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (files) {
+        Array.from(files).forEach(handleFileUpload);
+      }
+      e.target.value = ''; // 允许重复选择同一文件
+    },
+    [handleFileUpload]
+  );
 
   /** 移除文件 */
   const removeFile = useCallback((index: number) => {
@@ -668,7 +682,7 @@ export const InputArea: React.FC<InputAreaProps> = ({
     }
 
     if (!targetMention) {
-      message.warning('请使用 @ 指定目标智能体');
+      notify(onNotify, 'warning', '请使用 @ 指定目标智能体');
       return;
     }
 
@@ -680,7 +694,7 @@ export const InputArea: React.FC<InputAreaProps> = ({
       try {
         const res = await uploadApi.uploadFiles(uploadedFiles.map((item) => item.file));
         if (!res.success || !res.data) {
-          message.error('文件上传失败: ' + (res.message || '操作失败'));
+          notify(onNotify, 'error', '文件上传失败: ' + (res.message || '操作失败'));
           setUploading(false);
           return;
         }
@@ -688,7 +702,7 @@ export const InputArea: React.FC<InputAreaProps> = ({
         documents = Array.isArray(docs) ? docs : [docs];
       } catch (error) {
         console.error('[InputArea] 文件上传失败:', error);
-        message.error('文件上传失败，请重试');
+        notify(onNotify, 'error', '文件上传失败，请重试');
         setUploading(false);
         return;
       } finally {
@@ -714,6 +728,7 @@ export const InputArea: React.FC<InputAreaProps> = ({
     boundAgentType,
     selectedKnowledgeIds,
     onSend,
+    onNotify,
   ]);
 
   // ==================== 渲染 ====================
@@ -722,6 +737,15 @@ export const InputArea: React.FC<InputAreaProps> = ({
 
   return (
     <div className={`input-area ${themeClass}`}>
+      {/* 隐藏的原生文件选择框，两处"添加附件"按钮共用 */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        style={{ display: 'none' }}
+        onChange={handleFileInputChange}
+      />
+
       {/* 连接错误提示 */}
       {connectionError && (
         <div className="error-banner">
@@ -848,12 +872,7 @@ export const InputArea: React.FC<InputAreaProps> = ({
             <>
               {/* 2. 文件选择 */}
               {isEnableFile && (
-                <Upload
-                  beforeUpload={handleFileUpload}
-                  showUploadList={false}
-                  multiple
-                  className="upload-trigger"
-                >
+                <div className="upload-trigger" onClick={() => fileInputRef.current?.click()}>
                   <button
                     className="toolbar-btn toolbar-btn--attach"
                     disabled={!isConnected || uploading}
@@ -861,7 +880,7 @@ export const InputArea: React.FC<InputAreaProps> = ({
                   >
                     <Plus size={16} />
                   </button>
-                </Upload>
+                </div>
               )}
 
               {/* 3. 知识库选择器 */}
@@ -901,12 +920,7 @@ export const InputArea: React.FC<InputAreaProps> = ({
                 <div className="more-panel">
                   {/* 文件上传 */}
                   {isEnableFile && (
-                    <Upload
-                      beforeUpload={handleFileUpload}
-                      showUploadList={false}
-                      multiple
-                      className="more-panel__item"
-                    >
+                    <div className="more-panel__item" onClick={() => fileInputRef.current?.click()}>
                       <button
                         className="more-panel__btn"
                         disabled={!isConnected || uploading}
@@ -914,7 +928,7 @@ export const InputArea: React.FC<InputAreaProps> = ({
                         <Plus size={14} />
                         <span>添加附件</span>
                       </button>
-                    </Upload>
+                    </div>
                   )}
                   {/* 知识库 */}
                   {input_isEnableKnowledge && (

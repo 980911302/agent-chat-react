@@ -61,3 +61,23 @@ export function generateId(): string {
     return v.toString(16);
   });
 }
+
+/** 提示消息类型 */
+export type NotifyType = 'error' | 'warning' | 'info';
+
+/**
+ * 触发提示消息 —— 不内置任何 UI 库，由外部通过 onNotify 接入自己的 toast/message 组件
+ * 未传 onNotify 时退化为 console 输出，避免消息被静默吞掉
+ */
+export function notify(
+  onNotify: ((type: NotifyType, message: string) => void) | undefined,
+  type: NotifyType,
+  message: string
+): void {
+  if (onNotify) {
+    onNotify(type, message);
+    return;
+  }
+  const log = type === 'error' ? console.error : type === 'warning' ? console.warn : console.info;
+  log(`[agent-chat] ${message}`);
+}

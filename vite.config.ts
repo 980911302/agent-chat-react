@@ -25,7 +25,6 @@ export default defineConfig({
           'react',
           'react-dom',
           'react/jsx-runtime',
-          'antd',
           '@reduxjs/toolkit',
           'react-redux',
           'lucide-react',

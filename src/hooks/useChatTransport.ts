@@ -1,6 +1,6 @@
 import { useCallback, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { WebSocketTransport } from '@xyxandwxx/transport';
+import { WebSocketTransport } from '../vendor/transport/index.js';
 import type { Dispatch } from '@reduxjs/toolkit';
 import type { RootState, AppDispatch } from '../store';
 import {

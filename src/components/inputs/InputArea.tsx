@@ -14,7 +14,7 @@ import { Upload, message } from 'antd';
 import type { ExtraAgentData, KnowledgeGroup, DocumentInfo, HorizontalAlignment, Theme } from '../../types';
 import { TokensBar } from '../common/TokensBar';
 import { getToken } from '../../config';
-import { agentsApi, agentGroupsApi, knowledgeApi, uploadApi } from '@xyxandwxx/api-gateway';
+import { agentsApi, agentGroupsApi, knowledgeApi, uploadApi } from '../../vendor/api-gateway/index';
 
 /**
  * 消息输入区域组件

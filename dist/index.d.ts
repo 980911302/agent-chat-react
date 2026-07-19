@@ -3,11 +3,11 @@ import { ActionCreatorWithPayload } from '@reduxjs/toolkit';
 import { AxiosInstance } from 'axios';
 import { default as default_2 } from 'react';
 import { EnhancedStore } from '@reduxjs/toolkit';
-import { Reducer } from '@reduxjs/toolkit';
-import { StoreEnhancer } from '@reduxjs/toolkit';
-import { ThunkDispatch } from '@reduxjs/toolkit';
+import { Reducer } from 'redux';
+import { StoreEnhancer } from 'redux';
+import { ThunkDispatch } from 'redux-thunk';
 import { Tuple } from '@reduxjs/toolkit';
-import { UnknownAction } from '@reduxjs/toolkit';
+import { UnknownAction } from 'redux';
 
 export declare const A2UIChatLayout: default_2.ForwardRefExoticComponent<A2UIChatLayoutProps & default_2.RefAttributes<A2UIChatLayoutRef>>;
 

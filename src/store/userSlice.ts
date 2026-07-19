@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import { usersApi } from '@xyxandwxx/api-gateway';
+import { usersApi } from '../vendor/api-gateway/index';
 import type { User, LoginRequest, LoginResponse } from '../types';
 import { getToken, setToken, clearToken, setTokenExpiredCallback } from '../config';
 import type { AuthErrorCode } from './chatSlice';

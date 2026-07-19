@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance } from 'axios';
-import { setApiInstance, SSEClient, setSSEClient } from '@xyxandwxx/api-gateway';
+import { setApiInstance, SSEClient, setSSEClient } from './vendor/api-gateway/index';
 import type { AgentChatConfig, TokenStorageConfig, ApiConfig, WebSocketConfig } from './types';
 
 /**

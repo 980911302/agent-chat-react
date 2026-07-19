@@ -18,20 +18,23 @@ export default defineConfig({
       fileName: 'index',
     },
     rollupOptions: {
-      external: [
-        'react',
-        'react-dom',
-        'react/jsx-runtime',
-        'antd',
-        '@reduxjs/toolkit',
-        'react-redux',
-        'lucide-react',
-        'axios',
-        'dompurify',
-        'markdown-it',
-        '@a2ui/lit',
-        '@a2ui/web_core',
-      ],
+      // @a2ui/* 是可选 peer 依赖，代码里用的是子路径 import('@a2ui/lit/v0_9')，
+      // 精确字符串匹配不到子路径，必须用函数匹配前缀，否则 Rollup 会把整个 A2UI 库误打进 bundle
+      external: (id) =>
+        [
+          'react',
+          'react-dom',
+          'react/jsx-runtime',
+          'antd',
+          '@reduxjs/toolkit',
+          'react-redux',
+          'lucide-react',
+          'axios',
+          'dompurify',
+          'markdown-it',
+        ].includes(id) ||
+        id.startsWith('@a2ui/lit') ||
+        id.startsWith('@a2ui/web_core'),
       output: {
         globals: {
           react: 'React',
